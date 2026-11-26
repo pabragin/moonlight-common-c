@@ -1180,7 +1180,8 @@ int performRtspHandshake(PSERVER_INFORMATION serverInfo) {
                     }
                     if (offeredCodec != AUDIO_CODEC_OPUS && (SupportedAudioCodecs & offeredCodec)) {
                         int channels = CHANNEL_COUNT_FROM_AUDIO_CONFIGURATION(StreamConfig.audioConfiguration);
-                        if (channels == 2 || channels == 6 || channels == 8) {
+                        // Stereo stays on Opus: a 32 ms Dolby frame only adds latency there
+                        if (channels == 6 || channels == 8) {
                             if (channels == 8) {
                                 Limelog("Clamping 7.1 audio request to 5.1 for Dolby passthrough\n");
                                 StreamConfig.audioConfiguration = AUDIO_CONFIGURATION_51_SURROUND;
