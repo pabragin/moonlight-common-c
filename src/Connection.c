@@ -23,6 +23,8 @@ bool HighQualitySurroundEnabled;
 OPUS_MULTISTREAM_CONFIGURATION NormalQualityOpusConfig;
 OPUS_MULTISTREAM_CONFIGURATION HighQualityOpusConfig;
 int AudioPacketDuration;
+int SupportedAudioCodecs;
+int NegotiatedAudioCodec;
 bool AudioEncryptionEnabled;
 bool ReferenceFrameInvalidationSupported;
 uint16_t RtspPortNumber;
@@ -56,6 +58,14 @@ static const char* stageNames[STAGE_MAX] = {
 // Get the name of the current stage based on its number
 const char* LiGetStageName(int stage) {
     return stageNames[stage];
+}
+
+void LiSetSupportedAudioCodecs(int supportedAudioCodecs) {
+    SupportedAudioCodecs = supportedAudioCodecs & (AUDIO_CODEC_AC3 | AUDIO_CODEC_EAC3);
+}
+
+int LiGetNegotiatedAudioCodec(void) {
+    return NegotiatedAudioCodec;
 }
 
 // Interrupt a pending connection attempt. This interruption happens asynchronously

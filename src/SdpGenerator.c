@@ -526,6 +526,12 @@ static PSDP_OPTION getAttributesList(char*urlSafeAddr) {
             }
         }
 
+        if (NegotiatedAudioCodec != AUDIO_CODEC_OPUS) {
+            const char* codecName = (NegotiatedAudioCodec == AUDIO_CODEC_EAC3) ? "EAC3" : "AC3";
+            err |= addAttributeString(&optionHead, "x-ss-audio-codec-accept", codecName);
+            AudioPacketDuration = 32;
+        }
+
         snprintf(payloadStr, sizeof(payloadStr), "%d", AudioPacketDuration);
         err |= addAttributeString(&optionHead, "x-nv-aqos.packetDuration", payloadStr);
     }

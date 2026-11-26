@@ -1026,6 +1026,15 @@ void LiRequestIdrFrame(void);
 #define LI_FF_CONTROLLER_TOUCH_EVENTS 0x02 // LiSendControllerTouchEvent() supported
 uint32_t LiGetHostFeatureFlags(void);
 
+// Audio codec flags for optional compressed bitstream passthrough (Sunshine/Vibepollo extension).
+// Call LiSetSupportedAudioCodecs() before LiStartConnection() with a bitmask of supported Dolby codecs.
+// Query LiGetNegotiatedAudioCodec() during/after AudioRendererInit() to see which codec was negotiated.
+#define AUDIO_CODEC_OPUS 0x00
+#define AUDIO_CODEC_AC3  0x01
+#define AUDIO_CODEC_EAC3 0x02
+void LiSetSupportedAudioCodecs(int supportedAudioCodecs);
+int LiGetNegotiatedAudioCodec(void);
+
 #ifdef __cplusplus
 }
 #endif

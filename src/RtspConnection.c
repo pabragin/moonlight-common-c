@@ -952,6 +952,7 @@ int performRtspHandshake(PSERVER_INFORMATION serverInfo) {
     hasSessionId = false;
     controlStreamId = APP_VERSION_AT_LEAST(7, 1, 431) ? "streamid=control/13/0" : "streamid=control/1/0";
     AudioEncryptionEnabled = false;
+    NegotiatedAudioCodec = AUDIO_CODEC_OPUS;
     encryptedRtspEnabled = serverInfo->rtspSessionUrl && strstr(serverInfo->rtspSessionUrl, "rtspenc://");
     encryptionSequenceNumber = 0;
     encryptionCtx = PltCreateCryptoContext(0);
@@ -1155,6 +1156,43 @@ int performRtspHandshake(PSERVER_INFORMATION serverInfo) {
             EncryptionFeaturesRequested = 0;
         }
         EncryptionFeaturesEnabled = 0;
+
+        if (IS_SUNSHINE() &&
+            StreamConfig.streamingRemotely != STREAM_CFG_REMOTE &&
+            SupportedAudioCodecs != 0) {
+            const char* offerPrefix = "a=x-ss-audio-codec-offer:";
+            size_t offerPrefixLen = strlen(offerPrefix);
+            const char* p = response.payload;
+            while (p != NULL && (p = strstr(p, offerPrefix)) != NULL) {
+                if (p == response.payload || p[-1] == '\n' || p[-1] == '\r') {
+                    const char* val = p + offerPrefixLen;
+                    size_t valLen = 0;
+                    while (val[valLen] != '\0' && val[valLen] != '\r' && val[valLen] != '\n' &&
+                           val[valLen] != ' ' && val[valLen] != '\t') {
+                        valLen++;
+                    }
+                    int offeredCodec = AUDIO_CODEC_OPUS;
+                    if (valLen == 4 && memcmp(val, "EAC3", 4) == 0) {
+                        offeredCodec = AUDIO_CODEC_EAC3;
+                    }
+                    else if (valLen == 3 && memcmp(val, "AC3", 3) == 0) {
+                        offeredCodec = AUDIO_CODEC_AC3;
+                    }
+                    if (offeredCodec != AUDIO_CODEC_OPUS && (SupportedAudioCodecs & offeredCodec)) {
+                        int channels = CHANNEL_COUNT_FROM_AUDIO_CONFIGURATION(StreamConfig.audioConfiguration);
+                        if (channels == 2 || channels == 6 || channels == 8) {
+                            if (channels == 8) {
+                                Limelog("Clamping 7.1 audio request to 5.1 for Dolby passthrough\n");
+                                StreamConfig.audioConfiguration = AUDIO_CONFIGURATION_51_SURROUND;
+                            }
+                            NegotiatedAudioCodec = offeredCodec;
+                            break;
+                        }
+                    }
+                }
+                p += offerPrefixLen;
+            }
+        }
 
         // Parse the Opus surround parameters out of the RTSP DESCRIBE response.
         ret = parseOpusConfigurations(&response);

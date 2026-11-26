@@ -23,7 +23,7 @@ static uint64_t firstReceiveTime;
 static uint8_t opusHeaderByte;
 #endif
 
-#define MAX_PACKET_SIZE 1400
+#define MAX_PACKET_SIZE 4096
 
 typedef struct _QUEUE_AUDIO_PACKET_HEADER {
     LINKED_BLOCKING_QUEUE_ENTRY lentry;
